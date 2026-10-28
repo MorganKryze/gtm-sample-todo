@@ -6,4 +6,4 @@
 ## Due dates (P1)
 | Story | Type | Priority | Status | Track | Spec |
 | --- | --- | --- | --- | --- | --- |
-| A todo can carry a due date (`--due YYYY-MM-DD`); `list` shows it and marks overdue ones | story | P1 | done (awaiting the merge) | Feature | specs/2026-10-28-due-dates.md |
+| A todo can carry a due date (`--due YYYY-MM-DD`); `list` shows it and marks overdue ones | story | P1 | done (PR #1) | Feature | specs/2026-10-28-due-dates.md |

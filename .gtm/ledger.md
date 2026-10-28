@@ -36,3 +36,4 @@
 - 2026-10-28 · due-dates · resolved · the duplicated run helper (test:55-56) folded into runEnv in bc2bcc5
 - 2026-10-28 · due-dates · minor · test/todo.test.js:131 the TZ loop runs only `list`, never `add`: a TZ shift at store time survives under TZ=UTC; run the add test in the loop when CI exists (final-reviewer)
 - 2026-10-28 · due-dates · run · measured ≈20m ≈330k 10a: spec+plan 3m 52k 1a; tasks 9m 120k 6a (2 tasks, CLEAN at 0 rounds, reviewer + data-reviewer); final review 7m 68k fix-first (4 must-fix, tests only: 4 of 8 mutations survived); fix wave 1m 22k; re-review ready; lenses architect Pre-mortem 3, Inversion 2, ADR 2, First Principles 1; final-reviewer Pre-mortem 3, Second-Order 3
+- 2026-10-28 · due-dates · run · shipped as PR #1 (merge 4266a86, merge commit), by the orchestrator on the human's delegated autonomy

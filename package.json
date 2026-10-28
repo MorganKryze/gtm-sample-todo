@@ -1,0 +1,10 @@
+{
+  "name": "gtm-sample-todo",
+  "version": "0.1.0",
+  "description": "A tiny todo CLI, the sample project for the GentleTeaM tutorial",
+  "type": "module",
+  "bin": { "todo": "bin/todo.js" },
+  "scripts": { "test": "node --test", "lint": "node --check src/todo.js && node --check bin/todo.js" },
+  "engines": { "node": ">=22" },
+  "license": "MIT"
+}

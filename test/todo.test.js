@@ -1,6 +1,18 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { add, done, format } from '../src/todo.js'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { add, done, format, parseDue, save, load } from '../src/todo.js'
+
+const cli = new URL('../bin/todo.js', import.meta.url).pathname
+function tmpFile() {
+  return join(mkdtempSync(join(tmpdir(), 'todo-')), 'todo.json')
+}
+function run(file, ...args) {
+  return spawnSync('node', [cli, ...args], { env: { ...process.env, TODO_FILE: file }, encoding: 'utf8' })
+}
 
 test('add numbers todos from 1 and trims text', () => {
   const items = add(add([], ' milk '), 'eggs')
@@ -20,4 +32,51 @@ test('done marks one todo and refuses an unknown id', () => {
 test('format shows checkboxes, or a line when empty', () => {
   assert.equal(format([]), 'nothing to do')
   assert.equal(format(done(add(add([], 'a'), 'b'), 2)), '[ ] #1 a\n[x] #2 b')
+})
+
+test('add stores a due date as typed', () => {
+  assert.equal(add([], 'rent', '2026-11-02')[0].due, '2026-11-02')
+})
+
+test('add without a due date stores no due field', () => {
+  assert.equal('due' in add([], 'milk')[0], false)
+})
+
+test('parseDue refuses a date that is not a real YYYY-MM-DD day', () => {
+  for (const bad of ['2026-13-01', '2026-02-30', '2026-2-3', '02/11/2026', '2026-11-02T00:00']) {
+    assert.throws(() => parseDue(bad), /bad due date/)
+  }
+  assert.throws(() => parseDue(''), /needs a date/)
+  assert.equal(parseDue('2028-02-29'), '2028-02-29')
+})
+
+test('cli add stores --due anywhere after add', () => {
+  const file = tmpFile()
+  execFileSync('node', [cli, 'add', '--due', '2026-11-02', 'pay', 'rent'], { env: { ...process.env, TODO_FILE: file } })
+  execFileSync('node', [cli, 'add', 'milk', '--due', '2026-12-01'], { env: { ...process.env, TODO_FILE: file } })
+  const items = load(file)
+  assert.deepEqual(items.map((t) => [t.text, t.due]), [['pay rent', '2026-11-02'], ['milk', '2026-12-01']])
+})
+
+test('cli add refuses a bad or missing due date and leaves the file unchanged', () => {
+  const file = tmpFile()
+  save(file, add([], 'milk'))
+  const seed = readFileSync(file)
+  for (const args of [['add', 'x', '--due', '2026-02-30'], ['add', 'x', '--due']]) {
+    const r = run(file, ...args)
+    assert.equal(r.status, 1)
+    assert.match(r.stderr, /^todo: .*\n$/)
+    assert.equal(r.stderr.trim().split('\n').length, 1)
+    assert.deepEqual(readFileSync(file), seed)
+  }
+})
+
+test('cli keeps an old file without due unchanged', () => {
+  const file = tmpFile()
+  save(file, [{ id: 1, text: 'milk', done: false }])
+  run(file, 'add', 'eggs', '--due', '2026-11-02')
+  run(file, 'done', '1')
+  const items = load(file)
+  assert.deepEqual(items[0], { id: 1, text: 'milk', done: true })
+  assert.equal(items[1].id, 2)
 })

@@ -1,0 +1,51 @@
+# GTM project config. Read by every GTM skill and agent. Paths are relative to the repository root.
+
+root: .gtm
+
+# README.md:3 names GentleTeaM openly, single owner, no tool policy: stealth off (confirmed by the human, 2026-10-28).
+stealth: off
+
+language:
+  human: fr
+  code: en           # code, comments, README and the one commit are English
+
+briefing:
+  detail: standard
+  remembered: {}
+  emoji: light       # conversation only; the project itself uses none
+
+verify:
+  prefix: ""
+  lint: "npm run lint"            # ran at init: exit 0, 1.9 s
+  typecheck: ""                   # plain JS, no type checker
+  test: "npm test"                # [CHECK] not run at init (one smoke test passed: --test-name-pattern 'add refuses', 0.6 s)
+  build: ""
+  size: ""
+  e2e: ""
+  ui: ""
+  gate: [lint, test]
+
+git:
+  base: main
+  branch: "<type>/<slug>"         # history has only main; GTM default
+  commits: conventional           # 028fd8c "feat: a tiny todo CLI with add, done and list"
+  forbid: ["Co-authored-by", "Generated with"]
+  never_name: []
+  merge: merge-commit             # GTM default; one commit, no PR history to depart from
+  push: ask
+
+footprint:
+  words: []
+  allow: []
+  skip: []                        # the log, README and comments use no em dash and no emoji
+
+design:
+  screens: false                  # a CLI: no UI, design-loop never runs
+  mockups: .gtm/mockups
+  render: ""
+  widths: [360, 390, 1280]
+  kit: ""
+
+qa:
+  live_url: ""
+  account: ""

@@ -4,7 +4,7 @@ import { execFileSync, spawnSync } from 'node:child_process'
 import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { add, done, format, parseDue, save, load } from '../src/todo.js'
+import { add, done, format, localDate, parseDue, save, load } from '../src/todo.js'
 
 const cli = new URL('../bin/todo.js', import.meta.url).pathname
 function tmpFile() {
@@ -79,4 +79,45 @@ test('cli keeps an old file without due unchanged', () => {
   const items = load(file)
   assert.deepEqual(items[0], { id: 1, text: 'milk', done: true })
   assert.equal(items[1].id, 2)
+})
+
+test('format shows a due date after the text', () => {
+  const items = add(add([], 'a', '2026-11-02'), 'b')
+  assert.equal(format(items, '2026-10-28'), '[ ] #1 a (due 2026-11-02)\n[ ] #2 b')
+})
+
+test('format marks an open todo overdue only before today', () => {
+  const items = [
+    { id: 1, text: 'a', done: false, due: '2026-10-27' },
+    { id: 2, text: 'b', done: false, due: '2026-10-28' },
+    { id: 3, text: 'c', done: false, due: '2026-10-29' },
+    { id: 4, text: 'd', done: true, due: '2026-10-01' },
+  ]
+  assert.equal(
+    format(items, '2026-10-28'),
+    '[ ] #1 a (due 2026-10-27, overdue)\n[ ] #2 b (due 2026-10-28)\n[ ] #3 c (due 2026-10-29)\n[x] #4 d (due 2026-10-01)',
+  )
+})
+
+test('format keeps id order', () => {
+  const items = [
+    { id: 1, text: 'a', done: false, due: '2026-12-03' },
+    { id: 2, text: 'b', done: false, due: '2026-12-02' },
+    { id: 3, text: 'c', done: false, due: '2026-12-01' },
+  ]
+  assert.deepEqual(format(items, '2026-10-28').split('\n').map((l) => l.split(' ')[2]), ['#1', '#2', '#3'])
+})
+
+test('localDate reads the local calendar day at any hour', () => {
+  assert.equal(localDate(new Date(2026, 9, 28, 0, 1)), '2026-10-28')
+  assert.equal(localDate(new Date(2026, 9, 28, 23, 59)), '2026-10-28')
+  assert.equal(localDate(new Date(2026, 0, 5)), '2026-01-05')
+})
+
+test('cli list prints due dates and overdue', () => {
+  const file = tmpFile()
+  save(file, add(add([], 'old', '2000-01-01'), 'far', '2999-12-31'))
+  const lines = run(file, 'list').stdout.trim().split('\n')
+  assert.equal(lines[0], '[ ] #1 old (due 2000-01-01, overdue)')
+  assert.equal(lines[1], '[ ] #2 far (due 2999-12-31)')
 })

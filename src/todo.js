@@ -31,7 +31,17 @@ export function done(items, id) {
   return items.map((t) => (t.id === id ? { ...t, done: true } : t))
 }
 
-export function format(items) {
+export function localDate(now = new Date()) {
+  const pad = (n) => String(n).padStart(2, '0')
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+export function format(items, today = localDate()) {
   if (!items.length) return 'nothing to do'
-  return items.map((t) => `${t.done ? '[x]' : '[ ]'} #${t.id} ${t.text}`).join('\n')
+  return items
+    .map((t) => {
+      const due = t.due ? ` (due ${t.due}${!t.done && t.due < today ? ', overdue' : ''})` : ''
+      return `${t.done ? '[x]' : '[ ]'} #${t.id} ${t.text}${due}`
+    })
+    .join('\n')
 }

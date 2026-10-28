@@ -9,3 +9,5 @@ node bin/todo.js list
 node bin/todo.js done 1
 npm test
 ```
+
+`list` shows each due date and writes `overdue` on an open todo past its date.
